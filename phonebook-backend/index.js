@@ -35,6 +35,8 @@ let contacts = [
   }
 ]
 
+
+// HELPER FUNCTIONS
 const findContact = (id) => contacts.find(c => c.id === id);
 
 const nextId = () => {
@@ -47,6 +49,8 @@ const isUniqueName = (name) => {
   return !allNames.includes(name.toLowerCase());
 }
 
+
+// ROUTES
 app.get("/api/phonebook", (req, res) => {
   Contact.find({})
          .then(contacts => res.json(contacts));
@@ -54,8 +58,11 @@ app.get("/api/phonebook", (req, res) => {
 
 app.get("/info", (req, res) => {
   const time = new Date();
-  res.send(`<p>Phonebook has info for ${contacts.length} people</p>
-            <p>${time.toString()}</p>`);
+  Contact.find({})
+         .then(contacts => {
+          res.send(`<p>Phonebook has info for ${contacts.length} people</p><p>${time.toString()}</p>`);
+         })
+         .catch(error => next(error))
 })
 
 app.get("/api/phonebook/:id", (req, res) => {
@@ -68,16 +75,9 @@ app.get("/api/phonebook/:id", (req, res) => {
 })
 
 app.delete("/api/phonebook/:id", (req, res) => {
-  const id = req.params.id;
-  const contact = findContact(id);
-
-  if (contact) {
-    contacts = contacts.filter(c => c.id !== id);
-    res.status(204).end();
-  } else {
-    alert("No contact was found to delete");
-    res.status(404).end();
-  }
+  Contact.findByIdAndDelete(req.params.id)
+         .then(() => res.status(204).end())
+         .catch(error => next(error))
 })
 
 app.post("/api/phonebook", (req, res) => {
@@ -100,10 +100,26 @@ app.post("/api/phonebook", (req, res) => {
 })
 
 
-app.use((req, res) => {
-  res.status(404).send({ error: "unknown endpoint" });
-})
+// ERROR MIDDLEWARE
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
+
+
+// LISTEN FOR REQUESTS
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 })
