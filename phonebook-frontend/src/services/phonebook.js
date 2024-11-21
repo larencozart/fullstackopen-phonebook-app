@@ -12,6 +12,10 @@ const createContact = newContact => {
 
 const deleteContact = (id) => {
   return axios.delete(`${baseUrl}/${id}`);
-} 
+}
 
-export default { getContacts, createContact, deleteContact}
+const updateContact = (id, newContactObj) => {
+  return axios.put(`${baseUrl}/${id}`, newContactObj);
+}
+
+export default { getContacts, createContact, deleteContact, updateContact}

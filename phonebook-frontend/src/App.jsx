@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import phonebookService from './services/phonebook'
+// import contact from '../../phonebook-backend/models/contact'
 
 const DeleteButton = ({ handleDelete }) => {
   return (
@@ -27,9 +28,9 @@ const App = () => {
     phonebookService
       .getContacts()
       .then(response => {
-        console.log(response);
         setContacts(response.data);
       })
+      .catch(error => console.error(error.message))
   }, [])
 
   const handleNewName = (e) => {
@@ -40,16 +41,52 @@ const App = () => {
     setNewNum(e.target.value)
   }
 
+  // ATTEMPT at at exercise 2.15
+  // const updateContact = (id, newContact) => {
+  //   const message = `${newContact.name} is already added to your phonebook. 
+  //   Do you want to replace the old number with a new one?`;
+
+  //   if (confirm(message)) {
+  //     phonebookService
+  //       .updateContact(id, newContact)
+  //       .then(response => {
+  //         const updatedContact = response.data;
+  //         let updatedContacts = contacts.map(contact => {
+  //           if (contact.id === id) return updatedContact;
+  //           else return contact;
+  //         })
+
+  //         setContacts(updatedContacts)
+  //         setNewName('')
+  //         setNewNum('')
+  //       })
+  //       .catch(() => {
+  //         console.error(`Contact '${contact.name}' was already removed from server`)
+  //         setNotes(notes.filter(n => n.id !== id))
+  //       })
+  //   } else {
+  //     return
+  //   }
+  // }
+
   const addContact = (e) => {
     e.preventDefault()
 
-    const allNames = contacts.map(contact => contact.name)
-    if (allNames.includes(newName)) {
+    const newContact = { name: newName, number: newNum}
+    const allNames = contacts.map(contact => contact.name.toLowerCase())
+
+    if (allNames.includes(newName.toLowerCase())) {
       alert(`${newName} is already added to the phonebook`)
       return
+
+      //ATTEMPT at exercise 2.15
+      // // find the id
+      // const id = contacts.find(c => c.name.toLowerCase() === newName.toLowerCase()).id;
+      // console.log("checking my find ID code logic in addContact function App.jsx:", id);
+      // updateContact(id, newContact)
     }
 
-    const newContact = { name: newName, number: newNum}
+    
     phonebookService
       .createContact(newContact)
       .then(response => setContacts(contacts.concat(response.data)))
@@ -70,7 +107,6 @@ const App = () => {
     }
   }
 
-  console.log("contacts: ", contacts)
   return (
     <div>
       <h2>Phonebook</h2>
